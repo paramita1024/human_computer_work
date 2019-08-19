@@ -5,6 +5,48 @@ import numpy.linalg as LA
 import random
 import time 
 
+class kl_triage:
+    def __init__(self,data):
+        self.X=data['X']
+        self.Y=data['Y']
+        self.c=data['c']
+        self.lamb=data['lamb']
+        self.n,self.dim = self.X.shape
+        self.V = np.arange(self.n)
+        self.training()
+        
+    def	training(self):
+        
+        self.train_machine_error()
+        self.train_human_error()
+
+    def get_subset(self,K):
+
+		machine_err = self.X.dot( self.w_machine_error )
+		human_err = self.X.dot( self.w_human_error )
+
+		# err = np.absolute(human_err) - np.absolute(machine_err)
+		err = np.sqrt(self.c) - np.absolute(self.machine_err)
+		# print err
+		indices = np.argsort( err )
+		# indices = np.arange(K)
+		# indices = np.random.choice(self.n, K)
+		return indices[:K]
+        
+    def train_machine_error( self ):
+
+        self.w_machine_pred, self.machine_err = self.fit_LR( self.X, self.Y)
+        self.w_machine_error, tmp = self.fit_LR( self.X, self.machine_err)
+
+    def train_human_error( self ):
+
+        self.w_human_error, tmp = self.fit_LR( self.X, np.sqrt(self.c) )
+
+    def fit_LR(self, X, Y) :
+
+        w = LA.solve( X.T.dot(X)+ self.lamb * np.eye( X.shape[1] ), X.T.dot(Y) ) 
+        err = np.absolute((X.dot(w)-Y))
+        return w,err
 
 class Submodularity_ratio:
 	def __init__(self, data):
@@ -114,7 +156,8 @@ class modular_distort_greedy:
 		G_V = self.g.eval(self.V)
 		G_V_minus_i = np.array( [ self.g.eval( self.get_c( np.array([i])) ) for i in self.V ] )
 		min_inc_i = G_V - G_V_minus_i
-		self.w =  np.array([ max( 0.0 , -min_inc_i[i]) for i  in self.V ])
+		# print min_inc_i.shape
+		self.w =  np.array([ np.max(np.array([0.0,-min_inc_i[i]])) for i  in self.V ])
 		self.null_val = max( 0.0, - self.g.eval( np.array( [] ).astype(int) ) )
 
 	def eval(self,subset):
@@ -125,7 +168,12 @@ class modular_distort_greedy:
 
 	def get_inc_arr(self,subset):
 		subset_c=self.get_c(subset)
-		return np.array( [ self.w[i] for i in subset_c] )
+		# print 'inside c', subset_c.shape
+		l = [ self.w[i] for i in subset_c]
+		# print l
+		tmp = np.array( l )
+		# print 'tmp', tmp.shape
+		return tmp
 
 class modular:
 	def __init__(self,constant , vec):
@@ -151,7 +199,7 @@ class G:
 		self.dim=self.X.shape[1]
 		self.n=self.X.shape[0]
 		self.V=np.arange(self.n)
-		print self.V.shape
+		# print self.V.shape
 		self.init_data_str()
 
 	def reset(self):
@@ -191,13 +239,16 @@ class G:
 		
 	def eval_curr(self):
 		B=self.lamb*(self.n-self.curr_set_len)*np.eye(self.dim)
-		return -np.log(self.yTy - self.xy.T.dot(LA.inv(B+self.xxT).dot(self.xy))+self.c_S)
+		tmp = -np.log(self.yTy - self.xy.T.dot(LA.inv(B+self.xxT).dot(self.xy))+self.c_S)
+		# print tmp.shape
+		# print tmp
+		return tmp
 
 	def get_inc_arr(self,subset):
 		subset_c=self.get_c(subset)
 		vec=[]
-		G_S=self.eval_curr()
-		print type(G_S)
+		G_S=self.eval_curr()[0][0]
+		# print G_S.shape
 		# ind=0
 		# start = time.time()
 		for i in subset_c:
@@ -206,11 +257,14 @@ class G:
 			# 	finish = time.time()
 			# 	print (finish - start),'seconds'
 			# 	start = time.time()
-			d = self.give_inc(i) - G_S
+			# tmp = self.give_inc(i)[0][0]
+			# print tmp.shape
+			# print tmp
+			# d = 
 			# print d.shape
-			vec.append(d)
-		a=np.array(vec)
-		print a.shape
+			vec.append(self.give_inc(i)[0][0] - G_S )
+		# a=np.squeeze(np.array(vec))
+		# print a.shape	
 		return np.array(vec),subset_c
 
 	def eval(self,subset=None):

@@ -605,17 +605,18 @@ class Messidor:
         dest_dir= self.path + 'Images_part/' 
         # self.read_images_part(src_dir, dest_dir, label_file)
         
+        choice = 'Risk_edema'
         image_vector_file = self.path + 'out_Messidor'
-        data_file = self.path + 'data_part_Risk_edema' # Retino_grade'#'Risk_edema'
-        annote_file= self.path + 'annote_Risk_edema' # Retino_grade'
+        data_file = self.path + 'data_part_' + choice 
+        annote_file= self.path + 'annote_' + choice
         # self.read_image_vector(image_vector_file, label_file ,  data_file, annote_file )
 
-        data_file_split = self.path + 'data_split'
+        data_file_split = self.path+ choice + '/data_split'
         # split_data(0.8, data_file, data_file_split)
 
-        data_file_pca = data_file_split + '_pca'
+        data_file_pca = data_file_split  + '_pca'
         # process_data(data_file_split, data_file_pca, num_features=100 )
-        data_file_txt = '../Real_Data/text_files/'+ self.path.split('/')[2]+'_Risk_Edema'
+        data_file_txt = '../Real_Data/text_files/'+ self.path.split('/')[2]+'_'+choice
         write_file_to_txt(  data_file_pca, data_file_txt, annote_file, image_vector_file )
 
 
@@ -760,7 +761,7 @@ def main():
     # path = '../Real_Data/EyePAC/'
     # obj=EyePAC( path  )
     
-    path = '../Real_Data/Messidor/MESSIDOR/Risk_edema/'
+    path = '../Real_Data/Messidor/MESSIDOR/'
     obj = Messidor( path )
 
     

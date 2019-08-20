@@ -46,6 +46,27 @@ class eval_triage:
 
 
 def main():
+	
+	#---------------Synthetic Data------------------------
+	s = ['sigmoid_n500d10','Gauss_n500d10'][int(sys.argv[1])]
+	if 'sigmoid' in s : # Sigmoid 
+		list_of_std = [0.001]#,.005,0.01,.05]
+		list_of_lamb= [0.001]#,0.005,0.01,0.05] #[0.01,0.05] [.1,.5] # [0.0001,0.001,0.01,0.1,.4,.6,.8]#[[int(sys.argv[2])]] # [0.0001,0.001,0.01,0.1] #
+	else:
+		list_of_std =[0.001]#,0.005,0.01,.05] # [.01,.05,.1,.5, 1] # [[0.001,0.01,0.1][int(sys.argv[1])]]
+		list_of_lamb= [0.005]#,.0005] #0.0001, [.1,.5] # [0.0001,0.001,0.01,0.1,.4,.6,.8]#[[int(sys.argv[2])]] # [0.0001,0.001,0.01,0.1] #
+	option =['greedy','diff_submod','distort_greedy','stochastic_distort_greedy','kl_triage' ][int(sys.argv[2])]
+	if option in ['diff_submod', 'stochastic_distort_greedy' ]:
+		list_of_K =[0.1,0.2,0.3,.4,0.5,.6,.7,.8,.9] 
+	else:
+		list_of_K=[0.99]
+	data_file='../Synthetic_data/data_dict_' +s
+	res_file='../Synthetic_data/res_' +s
+	# ---------------------------------------------------------
+	obj=eval_triage(data_file,real_wt_std=True)
+	param={'std':list_of_std,'K':list_of_K,'lamb':list_of_lamb}
+	obj.eval_loop(param,res_file,option) 
+	#---------Real Data-------------------------------------------
 	# list_of_std=[0.0] # [[0.0][int(sys.argv[1])]] # np.array([0.0]int(sys.argv[1])]])
 	# list_of_std = [0.001,0.01,0.1] # [[0.001,0.01,0.1][int(sys.argv[1])]]
 	# list_of_K=[0.4]#[0.2,0.6,0.8]#[0.01,0.1,0.2,0.3,.4,0.5,.6,.7,.8,.9,.99]
@@ -58,7 +79,6 @@ def main():
 	# path = '../Real_Data/Messidor/MESSIDOR/Retino_grade/'
 	# path = '../Real_Data/EyePAC/'
 	# path = '../Real_Data/Messidor/Messidor_txt/'
-	# path='../Real_Data/BRAND_DATA/data5/'
 	# selected_cols =[ str(i) for i in [7,8,13,14,15,16] ] 
 	# path = '../Real_Data/CheXpert/data/'+selected_cols[int(sys.argv[1])]+'/'
 	#----------------------------------
@@ -73,46 +93,6 @@ def main():
 	# obj=eval_triage(data_file,real_flag=True)
 	# obj.eval_loop(param,res_file,option)
 	
-	#---------------Synthetic Data------------------------
-	# Sigmoid
-	# list_of_std=np.array([0.0])
-	# list_of_std=np.array([.01,0.05,.1,0.5])
-	# Gauss
-	# list_of_std=np.array([0.001,.005,0.01,.05,.1])
-	# gauss d_s
-	# list_of_std=np.array([0.01])
-	# list_of_K=[0.99]#[0.2,.4,.6,.8] #[.1,.4,.6,.8,.9]#[0.1,0.2,0.3,.4,0.5,.6,.7,.8,.9,.99]#[0.2,.4,.6,.8]
-	# list_of_K=[0.99]#[0.01,0.1,0.2,0.3,.4,0.5,.6,.7,.8,.9,.99]
-	# list_of_lamb=[0.0001,0.001,0.01,0.1,1]#,1.0]#[0.01,0.1,0.5,1.0]
-	# gauss d_s
-	# list_of_lamb=[[0.0001,0.001,0.01,0.1][int(sys.argv[1])]]
-	#[0.0001,0.001,0.01,0.1,1]#[0.0001,0.001,0.01,0.1]#,1.0]#[0.01,0.1,0.5,1.0]#
-	# print list_of_lamb
-	# Sigmoid 
-
-	# list_of_std =[.01,.05,.1,.5] # [.01,.05,.1,.5, 1] # [[0.001,0.01,0.1][int(sys.argv[1])]]
-	list_of_std = [0.001,0.005,0.01,0.05]
-	list_of_K=[0.99]#[0.1,0.2,0.3,.4,0.5,.6,.7,.8,.9] # [0.99] # [0.2,0.6,0.8]#[0.01,0.1,0.2,0.3,.4,0.5,.6,.7,.8,.9,.99]
-	list_of_lamb= [0.001,0.005,0.01,0.05] #[0.01,0.05] [.1,.5] # [0.0001,0.001,0.01,0.1,.4,.6,.8]#[[int(sys.argv[2])]] # [0.0001,0.001,0.01,0.1] #
-	# Gauss
-	# list_of_std =[0.001,.005,0.01,.05] # [.01,.05,.1,.5, 1] # [[0.001,0.01,0.1][int(sys.argv[1])]]
-	# list_of_K=[0.99] # [0.1,0.2,0.3,.4,0.5,.6,.7,.8,.9]#[0.99] # [0.2,0.6,0.8]#[0.01,0.1,0.2,0.3,.4,0.5,.6,.7,.8,.9,.99]
-	# list_of_lamb= [0.0001,.0005] #0.0001, [.1,.5] # [0.0001,0.001,0.01,0.1,.4,.6,.8]#[[int(sys.argv[2])]] # [0.0001,0.001,0.01,0.1] #
-	# curve_data='Gauss_2' # 'Gauss_0.1' # 'Gauss_0.1'
-	# curve ='Gauss_2_d_g' # 'Gauss_0.1' # 'Gauss_0.1_d_s_gr'
-	# data_file='../Synthetic_data/data_dict_sigmoid_n500d10'
-	# res_file='../Synthetic_data/res_sigmoid_n500d10'
-	s = 'sigmoid'
-	data_file='../Synthetic_data/data_dict_' +s+  '_n500d1'
-	res_file='../Synthetic_data/res_' +s+'_n500d1'
-	obj=eval_triage(data_file,real_wt_std=True)
-	param={'std':list_of_std,'K':list_of_K,'lamb':list_of_lamb}
-	# option='diff_submod'
-	# option = 'distort_greedy'
-	option = 'distort_greedy'
-	obj.eval_loop(param,res_file,option) 
-	
-	#----------------------------------------------------
 	#----------------------------------------------------
 	#----------------------------------------------------
 	# path='../Real_Data/Movielens/ml-20m/'

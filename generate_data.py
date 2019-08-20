@@ -18,13 +18,13 @@ class generate_data:
 	def white_Gauss(self,std=1):
 		return rand.normal(0,std,self.n)
 
-		
+	def sigmoid(self,x):
+		return 1/float(1+np.exp(-x))
+
 	def generate_Y_sigmoid(self):
-		def sigmoid(x):
-			return 1/float(1+np.exp(-x))
-	
-		self.w=rand.uniform(-1,1,self.dim)
-		self.Y=np.array(map(sigmoid,self.X.dot(self.w)))
+		# self.w=rand.uniform(-1,1,self.dim)
+		# self.Y=np.array(map(sigmoid_arr,self.X))
+		self.Y = np.array( [ self.sigmoid(x.sum()/float(x.shape[0])) for x in self.X ])
 		# self.Y=np.array(map(sigmoid,self.X.flatten()))
 		# x=self.X
 		# y=self.Y
@@ -35,9 +35,10 @@ class generate_data:
 		def gauss(x):
 			divide_wt = np.sqrt(2*np.pi)*std
 			return np.exp(-(x*x)/float(2*std*std))/divide_wt
-		self.w=rand.uniform(0,1,self.dim)
+		# self.w=rand.uniform(0,1,self.dim)
 		std=self.std_y
-		self.Y = np.array( map(gauss, self.X.dot(self.w) ) )
+		x_vec = np.array([ x.sum()/float(x.shape[0]) for x in self.X ])
+		self.Y = np.array( map(gauss, x_vec ) )
 		# self.Y=np.array(map(gauss,self.X.flatten()))
 		# self.Y=self.X.dot(self.w)+self.white_Gauss(std=0.01)
 		# x=self.X
@@ -113,7 +114,9 @@ def main():
 	n=500
 	dim=1
 	frac=0.8
-	option='convert'#sigmoid' #  'convert'#Gauss'
+	option='Gauss' #  #Gauss'
+	path = '../Synthetic_data/'
+	s = 'Gauss_n'+str(n)+'d'+str(dim)
 	if option=='sigmoid':
 		list_of_std=np.array([0.001,0.005,.01,.05])#([0.001,0.01,0.1,0.5,1]) 
 		obj=generate_data(n,dim,list_of_std)
@@ -123,38 +126,30 @@ def main():
 		obj.append_X()
 		obj.split_data(frac)
 		# obj.visualize_data()
-		save(obj,'../Synthetic_data/data_sigmoid_n500d1')
+		save(obj,path + 'data_' + s)
 		del obj
 	
 	
 	# generate sigmoid
 	if option=='Gauss':
 		std_y=2
-		list_of_std=np.array([0.001,.005,0.01,.05])#([0.001,0.01,0.1,0.5,1]) 
+		list_of_std=np.array([0.001,.005,0.01,0.05])#([0.001,0.01,0.1,0.5,1]) 
 		obj=generate_data(n,dim,list_of_std,std_y)
 		obj.generate_X()
 		obj.generate_Y_Gauss()
 		obj.generate_human_prediction()
 		obj.append_X()
 		obj.split_data(frac)
-		save(obj,'../Synthetic_data/data_Gauss_'+str(std_y)+'_n500d10')
+		save(obj,path + 'data_' + s)
 		del obj
 
-	if option=='convert':
 
-		path = '../Synthetic_data/'
-		input_data_file = path + 'data_sigmoid_n500d1'
-		output_data_file = path + 'data_dict_sigmoid_n500d1'
-		convert( input_data_file, output_data_file )
+		
+	input_data_file = path + 'data_' + s 
+	output_data_file = path + 'data_dict_' + s
+	print 'converting'
+	convert( input_data_file, output_data_file )
 
 
-	# gene<!-- <!-- ######rate gaussian
-#######	# obj=generate_data(n,dim)
-#######	# obj.generate_X()
-#######	# obj.generate_Y_Mix_of_Gauss(2,[.5,.5])
-#######	# obj.generate_human_prediction(list_of_std)
-#######	# save(obj,'../Synthetic_data/data_Mix_Gaussian')
-#######	# del obj
-######	 --> -->
 if __name__=="__main__":
 	main()

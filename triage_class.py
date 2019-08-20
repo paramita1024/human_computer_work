@@ -157,17 +157,32 @@ class modular_distort_greedy:
 		G_V_minus_i = np.array( [ self.g.eval( self.get_c( np.array([i])) ) for i in self.V ] )
 		min_inc_i = G_V - G_V_minus_i
 		# print min_inc_i.shape
-		self.w =  np.array([ np.max(np.array([0.0,-min_inc_i[i]])) for i  in self.V ])
+		# self.w =  np.array([ np.max(np.array([0.0,-min_inc_i[i]])) for i  in self.V ])
+		G_null = self.g.eval( np.array( [] ).astype(int) )
 		self.null_val = max( 0.0, - self.g.eval( np.array( [] ).astype(int) ) )
+		
+		
+
+		# G_i = np.array( [ self.g.eval( np.array([i]) ) - G_null for i in self.V ] )
+		# G_mean = (G_i + min_inc_i)/float(2)
+
+		G_ascend = np.array( [ self.g.eval( np.arange(i+1) ) - self.g.eval(np.arange(i)) for i in self.V ] )
+		self.w =  np.array([ np.max(np.array([0.0,G_ascend[i]])) for i  in self.V ])
+		# print 'max w ', np.max( self.w)
+		# print 'min w' , np.min( self.w)
 
 	def eval(self,subset):
-		return (self.null_val + self.w[subset].sum())
+		return self.null_val +self.w[subset].sum() # ( )
 
 	def get_c(self,subset):
 		return np.array([int(i) for i in range(self.n) if i not in subset])	
 
-	def get_inc_arr(self,subset):
-		subset_c=self.get_c(subset)
+	def get_inc_arr(self,subset, rest_flag=False, subset_rest = None ):
+		if rest_flag:
+			subset_c= subset_rest
+		else:
+			subset_c = self.get_c(subset)
+
 		# print 'inside c', subset_c.shape
 		l = [ self.w[i] for i in subset_c]
 		# print l
@@ -244,27 +259,15 @@ class G:
 		# print tmp
 		return tmp
 
-	def get_inc_arr(self,subset):
-		subset_c=self.get_c(subset)
+	def get_inc_arr(self,subset, rest_flag=False, subset_rest = None):
+		if rest_flag:
+			subset_c = subset_rest
+		else:
+			subset_c=self.get_c(subset)
 		vec=[]
 		G_S=self.eval_curr()[0][0]
-		# print G_S.shape
-		# ind=0
-		# start = time.time()
 		for i in subset_c:
-			# ind+=1
-			# if ind%100==0:
-			# 	finish = time.time()
-			# 	print (finish - start),'seconds'
-			# 	start = time.time()
-			# tmp = self.give_inc(i)[0][0]
-			# print tmp.shape
-			# print tmp
-			# d = 
-			# print d.shape
 			vec.append(self.give_inc(i)[0][0] - G_S )
-		# a=np.squeeze(np.array(vec))
-		# print a.shape	
 		return np.array(vec),subset_c
 
 	def eval(self,subset=None):

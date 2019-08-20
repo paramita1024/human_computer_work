@@ -1,3 +1,4 @@
+import random
 import sys
 sys.path.append("/home/paramita")
 import math
@@ -267,23 +268,54 @@ class triage_human_machine:
 			g.update_data_str(elm)
 		return subset
 
-	def gamma_sweep_distort_greedy(self):
+	def stochastic_distort_greedy(self,g,K,gamma,epsilon):
+		c_mod = modular_distort_greedy({'X':self.X,'Y':self.Y,'c':self.c,'lamb':self.lamb}) 
+		subset=np.array([]).astype(int)
+		g.reset()
+		s=int(math.ceil(self.n*np.log( float(1)/epsilon ) / float(K) ) )
+		print 'subset_size', s, 'K-->', K, ', n --> ', self.n
+		for itr in range(K):
+			frac = (1-gamma/float(K) )**(K-itr-1) 
+			subset_c = self.get_c(subset)
+			if s < subset_c.shape[0]:
+				subset_choosen = np.array( random.sample( subset_c, s ) )
+			else:
+				subset_choosen = subset_c
+
+			c_mod_inc = c_mod.get_inc_arr( subset, rest_flag = True, subset_rest=subset_choosen ) 
+			g_inc_arr, subset_c_ret =  g.get_inc_arr( subset, rest_flag=True, subset_rest = subset_choosen )
+			g_pos_inc  = g_inc_arr + c_mod_inc
+			inc_vec = frac * g_pos_inc - c_mod_inc
+			if np.max( inc_vec ) <= 0 :
+				return subset
+			sel_ind = np.argmax(inc_vec)	
+			elm = subset_choosen[sel_ind]
+			subset = self.get_added( subset, elm)
+			g.update_data_str(elm)
+		return subset
+
+	def gamma_sweep_distort_greedy(self, flag_stochastic=None):
 		g=G({'X':self.X,'Y':self.Y,'c':self.c,'lamb':self.lamb})
 		
 		# Submod_ratio = Submodularity_ratio({'X':self.X,'Y':self.Y,'c':self.c,'lamb':self.lamb}) 
 		
-		delta = 0.01
+		delta = 0.005
 		# arr = np.array([int(math.ceil( (1/delta)* np.log( 1/max(delta,Submod_ratio) ))) for Submod_ratio in [.5,.6,.7,.8,.9]])
 		Submod_ratio = 0.7
-		T=int(math.ceil( (1/delta)* np.log( 1/max(delta,Submod_ratio) )))
+		#----------------------------------CHANGE **********************************
+		T= int(math.ceil( (1/delta)* np.log( 1/max(delta,Submod_ratio) ))) # check 
 		subset = {}
 		G_subset=[]
 		gamma = 1.0
-		# print T
+		print 'T',T
 		start = time.time()
 		for r in range(T+1): 
-			# print r
-			subset_sel = self.distort_greedy(g,self.K,gamma) 
+			print r
+			if flag_stochastic:
+				subset_sel = self.stochastic_distort_greedy(g,self.K,gamma,delta) 
+			else:
+				subset_sel = self.distort_greedy(g,self.K,gamma) 
+
 			subset[str(r)] = subset_sel
 			G_subset.append( g.eval(subset_sel))
 			gamma = gamma*(1-delta)
@@ -333,9 +365,11 @@ class triage_human_machine:
 		if optim == 'diff_submod_greedy':
 			subset  = self.sel_subset_diff_submod_greedy() 
 		if optim == 'distort_greedy':
-			subset = self.gamma_sweep_distort_greedy()
+			subset = self.gamma_sweep_distort_greedy(flag_stochastic=False)
 		if optim == 'kl_triage':
 			subset = self.kl_triage_subset()
+		if optim == 'stochastic_distort_greedy':
+			subset = self.gamma_sweep_distort_greedy(flag_stochastic=True)
 		w_m = self.get_optimal_pred(subset)
 		plt_obj={'w':w_m,'subset':subset}
 		return plt_obj

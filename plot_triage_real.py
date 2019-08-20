@@ -70,11 +70,11 @@ class plot_triage_real:
 
 	def plot_err_vs_K(self,image_file,plot_obj):
 		
-		plt.plot(plot_obj['greedy']['test'],label='GREEDY Test',linewidth=8,linestyle='--',marker='o', markersize=10,color='red')
-		# plt.plot(plot_obj['distort_greedy']['test'],label='Distort Greedy Test',linewidth=8,linestyle='--',marker='o', markersize=10,color='green')
-		# plt.plot(plot_obj['diff_submod']['test'],label='DS Test',linewidth=8,linestyle='-',marker='o', markersize=10,color='blue')
-		plt.plot(plot_obj['kl_triage']['test'],label='KL Triage Test',linewidth=8,linestyle='-',marker='o', markersize=10,color='black')
-		# plt.plot(plot_obj['distort_greedy']['test'],label='Distort Greedy Test',linewidth=8,linestyle='-',marker='o', markersize=10,color='black')
+		plt.plot(plot_obj['greedy']['test'],label='GR',linewidth=8,linestyle='--',marker='o', markersize=10,color='red')
+		plt.plot(plot_obj['distort_greedy']['test'],label='DG',linewidth=8,linestyle='--',marker='o', markersize=10,color='green')
+		plt.plot(plot_obj['diff_submod']['test'],label='DS',linewidth=8,linestyle='-',marker='o', markersize=10,color='blue')
+		plt.plot(plot_obj['kl_triage']['test'],label='KL',linewidth=8,linestyle='-',marker='o', markersize=10,color='black')
+		plt.plot(plot_obj['stochastic_distort_greedy']['test'],label='Stochastic DG',linewidth=8,linestyle='-',marker='o', markersize=10,color='black')
 		plt.grid()
 		plt.legend()
 		plt.xlabel('K')
@@ -83,7 +83,7 @@ class plot_triage_real:
 		plt.xticks(range(len(self.list_of_K)),self.list_of_K)
 		plt.savefig(image_file+'.pdf',dpi=600, bbox_inches='tight')
 		plt.savefig(image_file+'.jpg',dpi=600, bbox_inches='tight')
-		# plt.show()
+		plt.show()
 		save(plot_obj,image_file)
 		plt.close()
 
@@ -196,16 +196,16 @@ class plot_triage_real:
 		error = ( err_h[subset].sum()+err_m.sum() - err_m[subset].sum() ) /float(n)
 		return {'error':error}
 
-	def compute_result(self,res_file,data_file,option, image_file_prefix ):
+	def compute_result(self,res_file,data_file,option, image_file_prefix =None):
 		data=load_data(data_file)
 		res=load_data(res_file)
-		for std,i0 in zip(self.list_of_std,range(self.list_of_std.shape[0])):
+		for std,i0 in zip(self.list_of_std,range( len(self.list_of_std) )):
 			for K,i1 in zip(self.list_of_K,range(len(self.list_of_K))):
 				for lamb,i2 in zip(self.list_of_lamb,range(len(self.list_of_lamb))):
 					res_obj=res[str(std)][str(K)][str(lamb)][option]
 					suffix='_'+option + '_std_'+str(std)+'_K_'+str(K)+'_lamb_'+str(lamb)
 					image_file =  image_file_prefix + suffix #'../Synthetic_data/demo/'
-					self.plot_subset_allocation( data['X'], data['Y'], res_obj['w'], res_obj['subset'], image_file )
+					# self.plot_subset_allocation( data['X'], data['Y'], res_obj['w'], res_obj['subset'], image_file )
 					print 'std', str(std), '  K', str(K), '  lamb  ', str(lamb)
 					train_res = self.get_train_error(res_obj,data['X'],data['Y'],y_h=None,c=data['c'][str(std)])
 					test_res_n,test_res_r = self.get_test_error(res_obj,data['dist_mat'],data['test']['X'],data['test']['Y'],y_h=None,c=data['test']['c'][str(std)],K=K)
@@ -293,29 +293,41 @@ class plot_triage_real:
 		w= self.get_optimal_pred(data,subset_tr,lamb)
 		return {'w':w,'subset':subset_tr}
 
-	
-
 def main():
-	# Sigmoid 
-	# list_of_std =np.array([.01])#,.05,.1,.5]) # [.01,.05,.1,.5, 1] # [[0.001,0.01,0.1][int(sys.argv[1])]]
-	# list_of_K=[0.1,0.2,0.3,.4,0.5,.6,.7,.8,.9] # [0.2,0.6,0.8]#[0.01,0.1,0.2,0.3,.4,0.5,.6,.7,.8,.9,.99]
-	# list_of_lamb= [0.01]#,0.05] # [.1,.5] # [0.0001,0.001,0.01,0.1,.4,.6,.8]#[[int(sys.argv[2])]] # [0.0001,0.001,0.01,0.1] #
-	list_of_std = np.array([0.001])#,0.005,0.01,0.05])
-	list_of_K=[.2,.4,.6,.8]#[0.1,0.2,0.3,.4,0.5,.6,.7,.8,.9] # [0.99] # [0.2,0.6,0.8]#[0.01,0.1,0.2,0.3,.4,0.5,.6,.7,.8,.9,.99]
-	list_of_lamb= [0.001]#,0.005,0.01,0.05] #[0.01,0.05] [.1,.5] # [0.0001,0.001,0.01,0.1,.4,.6,.8]#[[int(sys.argv[2])]] # [0.0001,0.001,0.01,0.1] #
-	# Gauss
-	# list_of_std =np.array([0.001])#,.005,0.01,.05]) # [.01,.05,.1,.5, 1] # [[0.001,0.01,0.1][int(sys.argv[1])]]
-	# list_of_K=[0.1,0.2,0.3,.4,0.5,.6,.7,.8,.9] # [0.2,0.6,0.8]#[0.01,0.1,0.2,0.3,.4,0.5,.6,.7,.8,.9,.99]
-	# list_of_lamb= [0.0001] # [.1,.5] # [0.0001,0.001,0.01,0.1,.4,.6,.8]#[[int(sys.argv[2])]] # [0.0001,0.001,0.01,0.1] #
-	
-	# list_of_std =np.array( [0.001,0.01,0.1])
-	# list_of_std=np.array([0.0])#01,0.005])#([0.001,.005,0.01,.05,.1])
-	# list_of_lamb=[0.0001,0.001,0.01 ,0.1,.4,.6,.8]
-	# list_of_K=[0.99]
-	# list_of_K=[0.01,0.1,0.2,0.3,.4,0.5,.6,.7,.8,.9,.99]
-	 #'diff_submod_greedy'# 'greedy'#'diff_submod_greedy'#'greedy'#
+	s = ['sigmoid_n500d10','Gauss_n500d10'][int(sys.argv[1])]
+	if 'sigmoid' in s : # Sigmoid 
+		list_of_std = [0.001]#,.005,0.01,.05]
+		list_of_lamb= [0.001]#,0.005,0.01,0.05] #[0.01,0.05] [.1,.5] # [0.0001,0.001,0.01,0.1,.4,.6,.8]#[[int(sys.argv[2])]] # [0.0001,0.001,0.01,0.1] #
+	else:
+		list_of_std =[0.001]#,0.005,0.01,.05] # [.01,.05,.1,.5, 1] # [[0.001,0.01,0.1][int(sys.argv[1])]]
+		list_of_lamb= [0.005]#,.0005] #0.0001, [.1,.5] # [0.0001,0.001,0.01,0.1,.4,.6,.8]#[[int(sys.argv[2])]] # [0.0001,0.001,0.01,0.1] #
+	list_of_option =['greedy','diff_submod','distort_greedy','stochastic_distort_greedy','kl_triage' ]
+	list_of_K =[0.1,0.2,0.3,.4,0.5,.6,.7,.8,.9] 
+	path = '../Synthetic_data/'
+	data_file= path + 'data_dict_' +s
+	res_file =  path + 'res_' +s
 	list_of_test_option = ['nearest']
-	# list_of_option = [ 'diff_submod']
+	# res=load_data(res_file)
+	# print res.keys()
+	# print res['0.01']['0.99']['0.01'].keys()#['kl_triage'].keys() # ['test_res']['nearest']['error']
+	# return
+	image_path = path + 'plot_vary_K_'+s
+	image_demo_prefix = path + 'demo_'+s
+	obj=plot_triage_real(list_of_K, list_of_std, list_of_lamb, list_of_option, list_of_test_option)
+	# input_res_files={ str(lamb): path+'res'+'_std_0.0_lamb_'+str(lamb) for lamb in list_of_lamb}
+	# obj.merge_results(input_res_files, res_file)
+	if_plot = int(sys.argv[2])
+	if if_plot:
+		obj.get_avg_error_vary_K(res_file,image_path)
+	else:
+		option = list_of_option[ int( sys.argv[3] ) ]
+		if option not in [ 'diff_submod', 'stochastic_distort_greedy']:
+			unified_K = 0.99
+			obj.split_res_over_K(data_file,res_file,unified_K,option)
+		obj.compute_result(res_file,data_file,option, image_demo_prefix)
+	
+	# obj.plot_err_vary_std_K(res_file,res_file_txt,500)
+	#-------------Real Data--------------------------
 	# path = '../Real_Data/STARE/5/' 
 	# path = '../Real_Data/STARE/11/' 
 	# path = '../Real_Data/Messidor/MESSIDOR/Retino_grade/'
@@ -325,36 +337,12 @@ def main():
 	# image_path = path + 'Retino_grade_'
 	# data_file= path + 'data_split_pca'	
 	# res_file= path + 'res_pca'
-	#--------------Synthetic------------------
-	path = '../Synthetic_data/'
-	s='sigmoid_n500d1'
-	data_file = path + 'data_dict_' +s
-	res_file = path + 'res_'+s
-
-	# res=load_data(res_file)
-	# print res.keys()
-	# print res['0.01']['0.99']['0.01'].keys()#['kl_triage'].keys() # ['test_res']['nearest']['error']
-	# return
-	image_path = path + 'plot_vary_K_'+s
-	image_demo_prefix = path + 'demo_'+s
-	# res_file_txt =path +  s+'_n500d10_Fig2.txt'
-	list_of_option=['greedy','kl_triage']#'diff_submod',
-	# list_of_option=['kl_triage']
+	#---------------------------------------------
 	#-----------------------------------------
 	# path='../Real_Data/Hatespeech/Davidson/'
 	# data_file= path + 'input_tr'
 	# res_file= path + 'res'
-	#-------------------------------------
-	obj=plot_triage_real(list_of_K, list_of_std, list_of_lamb, list_of_option, list_of_test_option)
-	# input_res_files={ str(lamb): path+'res'+'_std_0.0_lamb_'+str(lamb) for lamb in list_of_lamb}
-	# obj.merge_results(input_res_files, res_file)
-	unified_K = 0.99
-	option='greedy'  # 'distort_greedy'
-	obj.split_res_over_K(data_file,res_file,unified_K,option)
-	obj.compute_result(res_file,data_file,option, image_demo_prefix)
-	# obj.get_avg_error_vary_K(res_file,image_path)
-	# obj.plot_err_vary_std_K(res_file,res_file_txt,500)
-	#---------------------------------------
+	#------------------------------------------
 	# path='../Real_Data/BRAND_DATA/'
 	# data_file= path + 'data_ht4_vec_split_1'	
 	# res_file= path + 'res_ht4_1' #+'_lamb_'+str(list_of_lamb[0])

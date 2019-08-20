@@ -294,7 +294,9 @@ class plot_triage_real:
 		return {'w':w,'subset':subset_tr}
 
 def main():
-	s = ['sigmoid_n500d10','Gauss_n500d10'][int(sys.argv[1])]
+
+	# Figure 1
+	s = 'sigmoid_n500d10'#'Gauss_n500d10'
 	if 'sigmoid' in s : # Sigmoid 
 		list_of_std = [0.001]#,.005,0.01,.05]
 		list_of_lamb= [0.001]#,0.005,0.01,0.05] #[0.01,0.05] [.1,.5] # [0.0001,0.001,0.01,0.1,.4,.6,.8]#[[int(sys.argv[2])]] # [0.0001,0.001,0.01,0.1] #
@@ -307,25 +309,20 @@ def main():
 	data_file= path + 'data_dict_' +s
 	res_file =  path + 'res_' +s
 	list_of_test_option = ['nearest']
-	# res=load_data(res_file)
-	# print res.keys()
-	# print res['0.01']['0.99']['0.01'].keys()#['kl_triage'].keys() # ['test_res']['nearest']['error']
-	# return
 	image_path = path + 'plot_vary_K_'+s
 	image_demo_prefix = path + 'demo_'+s
 	obj=plot_triage_real(list_of_K, list_of_std, list_of_lamb, list_of_option, list_of_test_option)
 	# input_res_files={ str(lamb): path+'res'+'_std_0.0_lamb_'+str(lamb) for lamb in list_of_lamb}
 	# obj.merge_results(input_res_files, res_file)
-	if_plot = int(sys.argv[2])
-	if if_plot:
-		obj.get_avg_error_vary_K(res_file,image_path)
-	else:
-		option = list_of_option[ int( sys.argv[3] ) ]
+	# Figure1--------------------------------------------------------------------
+	for option in list_of_option:
 		if option not in [ 'diff_submod', 'stochastic_distort_greedy']:
 			unified_K = 0.99
 			obj.split_res_over_K(data_file,res_file,unified_K,option)
 		obj.compute_result(res_file,data_file,option, image_demo_prefix)
-	
+	obj.get_avg_error_vary_K(res_file,image_path)
+	# Figure 2--------------------------------------------------------------------
+	# res_file_txt = path + 'Fig2_' + s
 	# obj.plot_err_vary_std_K(res_file,res_file_txt,500)
 	#-------------Real Data--------------------------
 	# path = '../Real_Data/STARE/5/' 

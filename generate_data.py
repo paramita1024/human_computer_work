@@ -147,7 +147,7 @@ def main():
 		
 	input_data_file = path + 'data_' + s 
 	output_data_file = path + 'data_dict_' + s
-	print 'converting'
+	#print 'converting'
 	convert( input_data_file, output_data_file )
 
 

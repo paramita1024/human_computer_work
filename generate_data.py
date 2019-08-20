@@ -38,7 +38,7 @@ class generate_data:
 		# self.w=rand.uniform(0,1,self.dim)
 		std=self.std_y
 		x_vec = np.array([ x.sum()/float(x.shape[0]) for x in self.X ])
-		self.Y = np.array( map(gauss, x_vec ) )
+		self.Y = np.array( list(map(gauss, x_vec ) ))
 		# self.Y=np.array(map(gauss,self.X.flatten()))
 		# self.Y=self.X.dot(self.w)+self.white_Gauss(std=0.01)
 		# x=self.X
